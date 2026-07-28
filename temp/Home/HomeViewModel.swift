@@ -7,13 +7,15 @@ class HomeViewModel: ObservableObject {
     @Published var vehicleMakes: [VehicleListCell] = []
     @Published var carMakes: [Make] = []
     @Published var motorcycleMakes: [Make] = []
-    @Published var vehiclesLoading: Bool = false
-    @Published var carsLoading: Bool = false
-    @Published var motorcyclesLoading: Bool = false
+    @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
     @Published var filter: VehicleType? = nil
     
-    private let service = ApiService()
+    private let service: ApiService
+    
+    init(service: ApiService = .shared) {
+        self.service = service
+    }
     
     func loadVehicles() {
         
@@ -32,46 +34,32 @@ class HomeViewModel: ObservableObject {
     }
     
     func fetchVehicles() async {
+                                                                                    // Kept them seperate for error handling purposes
+        isLoading = true
         
-        vehiclesLoading = true
+        do {
+            let carResponse: CarMakes = try await service.fetch()
+            carMakes = carResponse.data
+        } catch let error as ApiError {
+            errorMessage = error.errorDescription
+        } catch {
+            errorMessage = ApiError.unexpectedError.errorDescription
+        }
         
-        await fetchCars()
-        await fetchMotorcycles()
+        do {
+            let motorcycleResponse: MotorcycleMakes = try await service.fetch()
+            motorcycleMakes = motorcycleResponse.data
+        } catch let error as ApiError {
+            errorMessage = error.errorDescription
+        } catch {
+            errorMessage = ApiError.unexpectedError.errorDescription
+        }
+        
         loadVehicles()
         
-        try? await Task.sleep(for: .seconds(3))
+        try? await Task.sleep(for: .seconds(1.5))
         
-        vehiclesLoading = false
-    }
-    
-    func fetchCars() async {
-        
-        carsLoading = true
-        
-        do {
-            carMakes = try await service.fetchCars()
-        } catch let error as ApiError {
-            errorMessage = error.errorDescription
-        } catch {
-            errorMessage = ApiError.unexpectedError.errorDescription
-        }
-        
-        carsLoading = false
-    }
-    
-    func fetchMotorcycles() async {
-        
-        motorcyclesLoading = true
-        
-        do {
-            motorcycleMakes = try await service.fetchMotorcycles()
-        } catch let error as ApiError {
-            errorMessage = error.errorDescription
-        } catch {
-            errorMessage = ApiError.unexpectedError.errorDescription
-        }
-        
-        motorcyclesLoading = false
+        isLoading = false
     }
     
     func filter(by type: VehicleType) {

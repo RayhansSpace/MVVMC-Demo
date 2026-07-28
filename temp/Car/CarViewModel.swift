@@ -1,10 +1,10 @@
 import Combine
 
-class MotorcycleViewModel: ObservableObject {
+class CarViewModel: ObservableObject {
     
     @Published var models: [VehicleModel] = []
     @Published var errorMessage: String? = nil
-    private let make: Make
+    private let make : Make
     private let service: ApiService
     
     init(service: ApiService = .shared, make: Make) {                  // MARK: why do i have to init why cant i just ViewModel(make: make)
@@ -15,7 +15,7 @@ class MotorcycleViewModel: ObservableObject {
     func loadModels() async {
         
         do {
-            let response: MotorcycleModels = try await service.fetch(make: make)
+            let response: CarModels = try await service.fetch(make: make)
             models = response.data
         } catch { errorMessage = ApiError.unexpectedError.errorDescription }
     }

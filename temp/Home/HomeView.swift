@@ -36,13 +36,13 @@ struct ContentView: View {
             
             ZStack {
                 
-                if viewModel.vehiclesLoading {
+                if viewModel.isLoading {
                     LoadingView()
                 } else if let error = viewModel.errorMessage {
                     ErrorView(errorMsg: error)
                 } else {
-                    VehicleList(content: viewModel.vehicleMakes) { vehicles in
-                        didTapCell(.car, vehicles.make)
+                    VehicleList(content: viewModel.vehicleMakes) { vehicle in
+                        didTapCell(vehicle.type, vehicle.make)
                     }
                 }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
