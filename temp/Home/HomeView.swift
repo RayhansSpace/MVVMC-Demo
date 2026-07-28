@@ -29,31 +29,36 @@ struct ContentView: View {
     var didTapCell: ((VehicleType, Make) -> Void )
 
     var body: some View {
+        
         VStack {
             
             TitleView()
             
-            if viewModel.carsLoading {
-                LoadingView()
-            } else if let error = viewModel.errorMessage {
-                ErrorView(errorMsg: error)
-            } else {
-                CarsList(makes: viewModel.carMakes) { make in didTapCell(.car, make) }
-            } // MARK: is this how im suposed to do it
+            ZStack {
+                
+                if viewModel.vehiclesLoading {
+                    LoadingView()
+                } else if let error = viewModel.errorMessage {
+                    ErrorView(errorMsg: error)
+                } else {
+                    VehicleList(content: viewModel.vehicleMakes) { vehicles in
+                        didTapCell(.car, vehicles.make)
+                    }
+                }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            if viewModel.motorcyclesLoading {
-                LoadingView()
-            } else if let error = viewModel.errorMessage {
-                ErrorView(errorMsg: error)
-            } else {
-                MotorcyclesList(makes: viewModel.motorcycleMakes) { make in didTapCell(.motorcycle, make) }
+            FilterView(selected: $viewModel.filter) { filter in
+                switch filter {
+                case .car, .motorcycle :
+                    viewModel.filter = filter
+                    viewModel.filter(by: filter!)
+                default:
+                    viewModel.filter = nil
+                    viewModel.loadVehicles()
+                }
             }
-        }
-        .padding()
-        .task {
-            await viewModel.loadCars()
-            await viewModel.loadMotorcycles()
-        }
+            
+        }.task { await viewModel.fetchVehicles() }
     }
 }
 
@@ -61,6 +66,24 @@ struct LoadingView: View {
     
     var body: some View {
         Text("Loading...")
+    }
+}
+
+struct FilterView: View {
+    
+    @Binding var selected: VehicleType?
+    var didTapFilter: ((VehicleType?) -> Void)
+    var body: some View {
+        Picker("Filter", selection: $selected) {
+            Text("All").tag(nil as VehicleType?)
+            Text("Cars").tag(VehicleType.car as VehicleType?)
+            Text("Motorcycles").tag(VehicleType.motorcycle as VehicleType?)
+        }
+        .pickerStyle(.segmented)
+        .padding()
+        .onChange(of: selected) { _, newValue in
+            didTapFilter(newValue)
+        }
     }
 }
 
@@ -82,40 +105,23 @@ struct TitleView: View {
     }
 }
 
-struct CarsList: View {
-    
-    let makes: [Make]
-    var didTapCell: ((Make) -> Void )
-    
-    var body: some View {
-        List(makes, id: \.id) { make in
-            HStack {
-                Image(systemName: "car")
-                    .imageScale(.large)
-                    .foregroundStyle(.tint)
-                Text(make.name)
-            }
-            .onTapGesture { didTapCell(make) }
-        }
-        .scrollContentBackground(.hidden)
-    }
+struct VehicleListCell: Hashable {
+    let type: VehicleType
+    let make: Make
 }
 
-struct MotorcyclesList: View {
+struct VehicleList: View {
     
-    let makes: [Make]
-    var didTapCell: ((Make) -> Void )
+    let content: [VehicleListCell]
+    var didTapCell: ((VehicleListCell) -> Void )
     
     var body: some View {
-        List(makes, id: \.id) { make in
-            
+        List(content, id: \.self) { cell in
             CustomCell(
-                title: make.name,
-                systemImage: "motorcycle"
+                title: cell.make.name,
+                systemImage: (cell.type == .car ? "car" : "motorcycle")
             )
-            .listRowSeparator(.hidden)
-            .listRowBackground(Color.clear)
-            .onTapGesture { didTapCell(make) }
+            .onTapGesture { didTapCell(cell) }
         }
         .scrollContentBackground(.hidden)
     }
@@ -125,23 +131,17 @@ struct CustomCell: View {
 
     let title: String
     let systemImage: String
-
     var body: some View {
 
-        HStack(spacing: 16) {
+        HStack {
 
             Image(systemName: systemImage)
-                .font(.title2)
-
             Text(title)
-                .font(.headline)
-
             Spacer()
+            
         }
         .padding()
-        .background(
-            Color(.systemGray6)
-        )
+        .background( Color(.systemGray6) )
         .cornerRadius(16)
         .shadow(
             color: .black.opacity(0.40),
