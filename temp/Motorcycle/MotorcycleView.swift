@@ -12,28 +12,21 @@ struct MotorcycleView: View {
     }
     
     var body: some View {
-        VStack {
+        List(viewModel.models, id: \.id) { model in
             HStack {
                 Image(systemName: "motorcycle")
                     .imageScale(.large)
                     .foregroundStyle(.tint)
+                Text(model.name)
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
                 Text(make.name)
-                    .font(.largeTitle)
-                    .fontWeight(.heavy)
+                    .modifier(TitleFormat())
             }
-            
-            List(viewModel.models, id: \.id) { model in
-                HStack {
-                    Image(systemName: "motorcycle")
-                        .imageScale(.large)
-                        .foregroundStyle(.tint)
-                    Text(model.name)
-                }
-            }
-            .scrollContentBackground(.hidden)
         }
-        .task {
-            await viewModel.loadModels()
-        }
-    }
+        .toolbarBackground(.white, for: .automatic)
+        .task { await viewModel.loadModels()} }
 }

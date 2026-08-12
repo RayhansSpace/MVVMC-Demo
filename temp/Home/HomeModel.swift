@@ -20,3 +20,13 @@ struct Make: Decodable, Hashable {
     let id: Int
     let name: String
 }
+
+enum VehicleType {
+    case car
+    case motorcycle
+}
+
+struct VehicleListCellModel: Hashable {
+    let type: VehicleType
+    let make: Make
+}

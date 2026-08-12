@@ -21,31 +21,12 @@ final class ApiService {
     }
 }
 
-enum ApiError: LocalizedError {
-    
-    case invalidURL
-    case unexpectedError
-    
-    var errorDescription: String? {
-        
-        switch self {
-            
-        case .invalidURL:
-            return "Invalid URL"
-            
-        case .unexpectedError:
-            return "Unexpected Error"
-        }
-    }
-}
-
 protocol Fetchable: Decodable {
     static var url: String { get }
 }
 
 
 struct CarMakes: Fetchable {
-    
     static let url = "https://carapi.app/api/makes/v2"
     
     let collection: CollectionInfo

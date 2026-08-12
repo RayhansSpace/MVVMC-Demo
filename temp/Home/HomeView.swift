@@ -32,14 +32,15 @@ struct ContentView: View {
         
         VStack {
             
-            TitleView()
+            Text("Select a vehicle")
+                .modifier(TitleFormat())
             
             ZStack {
                 
                 if viewModel.isLoading {
                     LoadingView()
                 } else if let error = viewModel.errorMessage {
-                    ErrorView(errorMsg: error)
+                    ErrorView(error: error)
                 } else {
                     VehicleList(content: viewModel.vehicleMakes) { vehicle in
                         didTapCell(vehicle.type, vehicle.make)
@@ -49,12 +50,12 @@ struct ContentView: View {
             
             FilterView(selected: $viewModel.filter) { filter in
                 switch filter {
-                case .car, .motorcycle :
+                case .Car, .Motorcycle :
                     viewModel.filter = filter
-                    viewModel.filter(by: filter!)
-                default:
-                    viewModel.filter = nil
-                    viewModel.loadVehicles()
+                case .None:
+                    viewModel.filter = .None
+                case .Error:
+                    Task { await viewModel.setError() }
                 }
             }
             
@@ -69,15 +70,23 @@ struct LoadingView: View {
     }
 }
 
+enum FiltersEnum {
+    case Car
+    case Motorcycle
+    case None
+    case Error
+}
+
 struct FilterView: View {
     
-    @Binding var selected: VehicleType?
-    var didTapFilter: ((VehicleType?) -> Void)
+    @Binding var selected: FiltersEnum
+    var didTapFilter: ((FiltersEnum) -> Void)
     var body: some View {
         Picker("Filter", selection: $selected) {
-            Text("All").tag(nil as VehicleType?)
-            Text("Cars").tag(VehicleType.car as VehicleType?)
-            Text("Motorcycles").tag(VehicleType.motorcycle as VehicleType?)
+            Text("All").tag(FiltersEnum.None as FiltersEnum)
+            Text("Cars").tag(FiltersEnum.Car as FiltersEnum)
+            Text("Motorcycles").tag(FiltersEnum.Motorcycle as FiltersEnum)
+            Text("Error").tag(FiltersEnum.Error as FiltersEnum)
         }
         .pickerStyle(.segmented)
         .padding()
@@ -87,33 +96,10 @@ struct FilterView: View {
     }
 }
 
-struct ErrorView: View {
-    
-    let errorMsg: String
-    
-    var body: some View {
-        Text(errorMsg)
-    }
-}
-
-struct TitleView: View {
-    
-    var body: some View {
-        Text("Vehicles")
-            .font(.largeTitle)
-            .fontWeight(.heavy)
-    }
-}
-
-struct VehicleListCell: Hashable {
-    let type: VehicleType
-    let make: Make
-}
-
 struct VehicleList: View {
     
-    let content: [VehicleListCell]
-    var didTapCell: ((VehicleListCell) -> Void )
+    let content: [VehicleListCellModel]
+    var didTapCell: ((VehicleListCellModel) -> Void )
     
     var body: some View {
         List(content, id: \.self) { cell in

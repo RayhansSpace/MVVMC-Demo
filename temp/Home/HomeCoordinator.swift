@@ -20,11 +20,6 @@ class HomeCoordinator: ObservableObject {
     }
 }
 
-enum VehicleType {
-    case car
-    case motorcycle
-}
-
 enum Route: Hashable {
     case car(Make)
     case motorcycle(Make)

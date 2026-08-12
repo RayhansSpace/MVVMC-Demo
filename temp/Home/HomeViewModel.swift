@@ -4,12 +4,17 @@ import Foundation
 @MainActor
 class HomeViewModel: ObservableObject {
     
-    @Published var vehicleMakes: [VehicleListCell] = []
+    @Published var vehicleMakes: [VehicleListCellModel] = []
     @Published var carMakes: [Make] = []
     @Published var motorcycleMakes: [Make] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
-    @Published var filter: VehicleType? = nil
+    @Published var filter: FiltersEnum = .None {
+        didSet {
+            errorMessage = nil
+            filter(by: filter)
+        }
+    }
     
     private let service: ApiService
     
@@ -22,11 +27,11 @@ class HomeViewModel: ObservableObject {
         vehicleMakes.removeAll()
         
         carMakes.forEach { car in
-            vehicleMakes.append(VehicleListCell(type: .car, make: car))
+            vehicleMakes.append(VehicleListCellModel(type: .car, make: car))
         }
         
         motorcycleMakes.forEach { motorcycle in
-            vehicleMakes.append(VehicleListCell(type: .motorcycle, make: motorcycle))
+            vehicleMakes.append(VehicleListCellModel(type: .motorcycle, make: motorcycle))
         }
         
         vehicleMakes.sort(using: KeyPathComparator(\.make.name))
@@ -62,8 +67,23 @@ class HomeViewModel: ObservableObject {
         isLoading = false
     }
     
-    func filter(by type: VehicleType) {
+    func filter(by type: FiltersEnum) {
         loadVehicles()
-        vehicleMakes = vehicleMakes.filter { $0.type == type }
+        switch type {
+        case .Car: vehicleMakes = vehicleMakes.filter { $0.type == .car }
+        case .Motorcycle: vehicleMakes = vehicleMakes.filter { $0.type == .motorcycle }
+        case .Error: break
+        case .None: break
+        }
+    }
+    
+    func setError() async {
+        do {
+            let error: CarMakes = try await service.fetch(make: Make(id: 0, name: "Error"))
+        }   catch let error as ApiError {
+            errorMessage = error.errorDescription
+        } catch {
+            errorMessage = ApiError.unexpectedError.errorDescription
+        }
     }
 }
