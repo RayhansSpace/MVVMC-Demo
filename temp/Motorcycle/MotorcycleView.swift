@@ -1,14 +1,13 @@
 import SwiftUI
-import Combine
 
 struct MotorcycleView: View {
     
     let make: Make
-    @StateObject var viewModel: MotorcycleViewModel
+    var viewModel: MotorcycleViewModel
     
     init(make: Make) {
         self.make = make
-        _viewModel = StateObject(wrappedValue:  MotorcycleViewModel(make: make)) // MARK: HELP !
+        viewModel = MotorcycleViewModel(make: make)
     }
     
     var body: some View {

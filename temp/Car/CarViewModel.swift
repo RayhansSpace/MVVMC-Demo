@@ -1,13 +1,15 @@
-import Combine
+import Foundation
 
-class CarViewModel: ObservableObject {
+@Observable
+@MainActor
+class CarViewModel {
     
-    @Published var models: [VehicleModel] = []
-    @Published var errorMessage: String? = nil
+    var models: [VehicleModel] = []
+    var errorMessage: String? = nil
     private let make : Make
     private let service: ApiService
     
-    init(service: ApiService = .shared, make: Make) {                  // MARK: why do i have to init why cant i just ViewModel(make: make)
+    init(service: ApiService = .shared, make: Make) {               // MARK: why do i have to init why cant i just ViewModel(make: make)
         self.service = service
         self.make = make
     }

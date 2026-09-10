@@ -1,9 +1,11 @@
-import Combine
+import Foundation
 
-class MotorcycleViewModel: ObservableObject {
+@Observable
+@MainActor
+class MotorcycleViewModel {
     
-    @Published var models: [VehicleModel] = []
-    @Published var errorMessage: String? = nil
+    var models: [VehicleModel] = []
+    var errorMessage: String? = nil
     private let make: Make
     private let service: ApiService
     

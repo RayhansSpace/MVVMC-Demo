@@ -1,10 +1,14 @@
 import Foundation
 
-final class ApiService {
+protocol VehicleServiceProtocol {
+    func fetch<T:Fetchable>(make: Make?) async throws -> T
+}
+
+final class ApiService: VehicleServiceProtocol {
     
     static let shared = ApiService()
     
-    func fetch<T: Fetchable>(make: Make? = nil) async throws -> T {
+    func fetch<T: Fetchable>(make: Make?) async throws -> T {
         
         var urlString: String = T.url
         

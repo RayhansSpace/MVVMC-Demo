@@ -2,13 +2,14 @@ import SwiftUI
 
 struct HomeView: View {
 
-    @StateObject private var coordinator = HomeCoordinator()
+    @State private var coordinator = HomeCoordinator()
+    @State private var viewModel = HomeViewModel(service: ApiService.shared)
 
     var body: some View {
 
         NavigationStack(path: $coordinator.path) {                      //MARK: look into this
 
-            ContentView { vehicle , make in
+            ContentView(viewModel: viewModel) { vehicle , make in
                 
                 switch vehicle {
                 case .car:
@@ -25,7 +26,7 @@ struct HomeView: View {
 }
 
 struct ContentView: View {
-    @StateObject var viewModel = HomeViewModel()
+    @Bindable var viewModel: HomeViewModel
     var didTapCell: ((VehicleType, Make) -> Void )
 
     var body: some View {

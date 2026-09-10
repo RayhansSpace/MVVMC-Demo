@@ -1,24 +1,24 @@
-import Combine
 import Foundation
 
 @MainActor
-class HomeViewModel: ObservableObject {
+@Observable
+class HomeViewModel {
     
-    @Published var vehicleMakes: [VehicleListCellModel] = []
-    @Published var carMakes: [Make] = []
-    @Published var motorcycleMakes: [Make] = []
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String? = nil
-    @Published var filter: FiltersEnum = .None {
+    var vehicleMakes: [VehicleListCellModel] = []
+    var carMakes: [Make] = []
+    var motorcycleMakes: [Make] = []
+    var isLoading: Bool = false
+    var errorMessage: String? = nil
+    var filter: FiltersEnum = .None {
         didSet {
             errorMessage = nil
             filter(by: filter)
         }
     }
     
-    private let service: ApiService
+    private let service: VehicleServiceProtocol
     
-    init(service: ApiService = .shared) {
+    init(service: VehicleServiceProtocol) {
         self.service = service
     }
     
@@ -43,7 +43,7 @@ class HomeViewModel: ObservableObject {
         isLoading = true
         
         do {
-            let carResponse: CarMakes = try await service.fetch()
+            let carResponse: CarMakes = try await service.fetch(make: nil)
             carMakes = carResponse.data
         } catch let error as ApiError {
             errorMessage = error.errorDescription
@@ -52,7 +52,7 @@ class HomeViewModel: ObservableObject {
         }
         
         do {
-            let motorcycleResponse: MotorcycleMakes = try await service.fetch()
+            let motorcycleResponse: MotorcycleMakes = try await service.fetch(make: nil)
             motorcycleMakes = motorcycleResponse.data
         } catch let error as ApiError {
             errorMessage = error.errorDescription
@@ -79,7 +79,7 @@ class HomeViewModel: ObservableObject {
     
     func setError() async {
         do {
-            let error: CarMakes = try await service.fetch(make: Make(id: 0, name: "Error"))
+            let _: CarMakes = try await service.fetch(make: Make(id: 0, name: "Error"))
         }   catch let error as ApiError {
             errorMessage = error.errorDescription
         } catch {

@@ -1,9 +1,11 @@
 import SwiftUI
 import Combine
 
-class HomeCoordinator: ObservableObject {
+@Observable
+@MainActor
+class HomeCoordinator {
     
-    @Published var path = NavigationPath()
+    var path = NavigationPath()
     
     func push(_ route: Route) {
         path.append(route)
