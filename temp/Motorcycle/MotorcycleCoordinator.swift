@@ -1,13 +1,16 @@
 import SwiftUI
-import Combine
 
-class MotorcycleCoordinator: ObservableObject {
+class MotorcycleCoordinator: NormalDrivingLicense {
+    func drivingLicenseType() -> DrivingLicense {
+        return DrivingLicense.Normal
+    }
     
-    private func createVC(_ make: Make) -> some View {
+    
+    private func createView(_ make: Make) -> some View {
         MotorcycleView(make: make)
     }
 }
 
 extension MotorcycleCoordinator {
-    func start(with make: Make) -> some View { createVC(make) }
+    func start(with make: Make) -> some View { createView(make) }
 }

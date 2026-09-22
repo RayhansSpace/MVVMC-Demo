@@ -2,24 +2,25 @@ import SwiftUI
 
 struct HomeView: View {
 
-    @State private var coordinator = HomeCoordinator()
+    @State private var path = NavigationPath()
+    @State private var routeBuilder = AppRouteBuilder()
     @State private var viewModel = HomeViewModel(service: ApiService.shared)
 
     var body: some View {
 
-        NavigationStack(path: $coordinator.path) {                      //MARK: look into this
+        NavigationStack(path: $path) {                      //MARK: look into this
 
             ContentView(viewModel: viewModel) { vehicle , make in
                 
                 switch vehicle {
                 case .car:
-                    coordinator.push(.car(make))
+                    path.append(Route.car(make))
                 case .motorcycle:
-                    coordinator.push(.motorcycle(make))
+                    path.append(Route.motorcycle(make))
                 }
             }
             .navigationDestination(for: Route.self) { route in
-                coordinator.build(route)
+                AppRouteBuilder.build(route)
             }
         }
     }

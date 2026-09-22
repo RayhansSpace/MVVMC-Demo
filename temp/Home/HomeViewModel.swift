@@ -4,6 +4,7 @@ import Foundation
 @Observable
 class HomeViewModel {
     
+    private let service: VehicleServiceProtocol
     var vehicleMakes: [VehicleListCellModel] = []
     var carMakes: [Make] = []
     var motorcycleMakes: [Make] = []
@@ -15,8 +16,6 @@ class HomeViewModel {
             filter(by: filter)
         }
     }
-    
-    private let service: VehicleServiceProtocol
     
     init(service: VehicleServiceProtocol) {
         self.service = service
