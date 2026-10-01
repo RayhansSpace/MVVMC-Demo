@@ -18,10 +18,17 @@ final class ApiService: VehicleServiceProtocol {
             throw ApiError.invalidURL
         }
            
-        let (data ,_ ) = try await URLSession.shared.data(from: url)
-        let apiResponse = try JSONDecoder().decode(T.self, from: data)
+        let (data ,response ) = try await URLSession.shared.data(from: url)
         
-        return apiResponse
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw ApiError.invalidResponse
+        }
+        
+        if httpResponse.statusCode < 200 || httpResponse.statusCode > 299 {
+            throw ApiError.httpError(statusCode: httpResponse.statusCode)
+        }
+        
+        return try JSONDecoder().decode(T.self, from: data)
     }
 }
 
