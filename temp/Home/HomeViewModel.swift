@@ -33,26 +33,33 @@ class HomeViewModel {
             vehicleMakes.append(VehicleListCellModel(type: .motorcycle, make: motorcycle))
         }
         
-        vehicleMakes.sort(using: KeyPathComparator(\.make.name))
+        vehicleMakes.sort {
+            $0.make.name < $1.make.name
+        }
         
     }
     
     func fetchVehicles() async {
-                                                                                    // Kept them seperate for error handling purposes
+                                                // MARK: Error handling (if one fails is the other lost?)
         isLoading = true
         
-        do {
-            let carResponse: CarMakes = try await service.fetch(make: nil)
-            carMakes = carResponse.data
-        } catch let error as ApiError {
-            errorMessage = error.errorDescription
-        } catch {
-            errorMessage = ApiError.unexpectedError.errorDescription
-        }
+        defer {                                 // if cancels isLoading resets to false
+                isLoading = false
+            }
         
         do {
-            let motorcycleResponse: MotorcycleMakes = try await service.fetch(make: nil)
-            motorcycleMakes = motorcycleResponse.data
+            async let carResponse: CarMakes = service.fetch(make: nil)
+            async let motorcycleResponse: MotorcycleMakes = service.fetch(make: nil)
+
+            let (cars, motorcycles) = try await (carResponse, motorcycleResponse)
+            
+            try Task.checkCancellation()        // check if cancelled
+
+            carMakes = cars.data
+            motorcycleMakes = motorcycles.data
+
+        } catch is CancellationError {
+            return
         } catch let error as ApiError {
             errorMessage = error.errorDescription
         } catch {
@@ -78,8 +85,12 @@ class HomeViewModel {
     
     func setError() async {
         do {
-            let _: CarMakes = try await service.fetch(make: Make(id: 0, name: "Error"))
-        }   catch let error as ApiError {
+            let _: CarMakes = try await service.fetch(
+                make: Make(id: 0, name: "Error")
+            )
+        } catch is CancellationError {
+            return
+        } catch let error as ApiError {
             errorMessage = error.errorDescription
         } catch {
             errorMessage = ApiError.unexpectedError.errorDescription
