@@ -1,6 +1,6 @@
 import Foundation
 
-protocol VehicleServiceProtocol {
+protocol VehicleServiceProtocol: Sendable {
     func fetch<T:Fetchable>(make: Make?) async throws -> T
 }
 
@@ -37,14 +37,14 @@ protocol Fetchable: Decodable {
 }
 
 
-struct CarMakes: Fetchable {
+nonisolated struct CarMakes: Fetchable {
     static let url = "https://carapi.app/api/makes/v2"
     
     let collection: CollectionInfo
     let data: [Make]
 }
 
-struct MotorcycleMakes: Fetchable {
+nonisolated struct MotorcycleMakes: Fetchable {
     static let url = "https://carapi.app/api/makes/powersports?type=street_motorcycle"
     
     let collection: CollectionInfo
